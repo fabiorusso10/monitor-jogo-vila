@@ -1,13 +1,13 @@
 import requests
 import os
+import hashlib
 
 url = "https://www.jogueinavila.com.br"
 
-# Pega dados do GitHub Secrets (NÃO fica no código)
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-ARQUIVO_ESTADO = "estado.txt"
+ARQUIVO_HASH = "hash.txt"
 
 
 def enviar_telegram(mensagem):
@@ -19,42 +19,49 @@ def enviar_telegram(mensagem):
     requests.post(link, data=data)
 
 
-def ja_enviado():
+def gerar_hash(conteudo):
+    return hashlib.md5(conteudo.encode()).hexdigest()
+
+
+def ler_hash_salvo():
     try:
-        with open(ARQUIVO_ESTADO, "r") as f:
-            return f.read().strip() == "enviado"
+        with open(ARQUIVO_HASH, "r") as f:
+            return f.read().strip()
     except:
-        return False
+        return None
 
 
-def salvar_estado():
-    with open(ARQUIVO_ESTADO, "w") as f:
-        f.write("enviado")
+def salvar_hash(novo_hash):
+    with open(ARQUIVO_HASH, "w") as f:
+        f.write(novo_hash)
 
 
 try:
     response = requests.get(url)
-    content = response.text.lower()
+    content = response.text
 
-    if "novidades em breve" in content:
-        print("⏳ Ainda não abriu")
+    hash_atual = gerar_hash(content)
+    hash_antigo = ler_hash_salvo()
+
+    if hash_antigo is None:
+        print("📌 Primeira execução - salvando estado")
+        salvar_hash(hash_atual)
+
+    elif hash_atual != hash_antigo:
+        print("🚨 SITE MUDOU!")
+
+        mensagem = (
+            "🚨 ATENÇÃO!\n\n"
+            "O site do Jogue na Vila foi atualizado!\n"
+            "Pode ter novidade importante 👀\n\n"
+            "👉 https://www.jogueinavila.com.br"
+        )
+
+        enviar_telegram(mensagem)
+        salvar_hash(hash_atual)
+
     else:
-        print("🚨 MUDOU!")
-
-        if not ja_enviado():
-            print("📩 Enviando alerta...")
-
-            mensagem = (
-                "🚨 ATENÇÃO!\n\n"
-                "O site do Jogue na Vila mudou!\n"
-                "Pode ter aberto inscrição!\n\n"
-                "👉 https://www.jogueinavila.com.br"
-            )
-
-            enviar_telegram(mensagem)
-            salvar_estado()
-        else:
-            print("🔁 Já avisado antes")
+        print("⏳ Sem mudanças no site")
 
 except Exception as e:
     print(f"Erro: {e}")
