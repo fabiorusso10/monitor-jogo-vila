@@ -1,51 +1,30 @@
-import requests
-import os
+name: Monitorar Site
 
-url = "https://www.jogueinavila.com.br"
-arquivo_estado = "estado.txt"
+on:
+  schedule:
+    - cron: '0 12 * * *'
+    - cron: '0 16 * * *'
+    - cron: '0 22 * * *'
+  workflow_dispatch:
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+jobs:
+  check-site:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
 
-def enviar_telegram(mensagem):
-    link = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    data = {
-        "chat_id": CHAT_ID,
-        "text": mensagem
-    }
-    requests.post(link, data=data)
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
+      - name: Instalar dependências
+        run: pip install requests
 
-def ja_notificado():
-    try:
-        with open(arquivo_estado, "r") as f:
-            return f.read() == "enviado"
-    except:
-        return False
-
-
-def salvar_estado():
-    with open(arquivo_estado, "w") as f:
-        f.write("enviado")
-
-
-try:
-    response = requests.get(url)
-    content = response.text.lower()
-
-    if "novidades em breve" in content:
-        print("⏳ Ainda não abriu")
-    else:
-        print("🚨 MUDOU!")
-
-        if not ja_notificado():
-            print("📩 Enviando alerta...")
-            mensagem = "🚨 ATENÇÃO!\n\nO site do Jogue na Vila mudou!\nPode ter aberto inscrição!\n\nhttps://www.jogueinavila.com.br"
-            enviar_telegram(mensagem)
-            salvar_estado()
-        else:
-            print("🔁 Já avisado anteriormente")
-
-except Exception as e:
-    print(f"Erro: {e}")
+      - name: Rodar script
+        run: python monitor.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
