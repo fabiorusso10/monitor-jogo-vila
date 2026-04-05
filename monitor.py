@@ -3,6 +3,7 @@ import os
 
 url = "https://www.jogueinavila.com.br"
 
+# Pega dados do GitHub Secrets (NÃO fica no código)
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
