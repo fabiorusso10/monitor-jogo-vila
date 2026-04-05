@@ -1,11 +1,11 @@
 name: Monitorar Site
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 12 * * *'
     - cron: '0 16 * * *'
     - cron: '0 22 * * *'
-  workflow_dispatch:
 
 jobs:
   check-site:
