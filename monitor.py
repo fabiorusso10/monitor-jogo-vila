@@ -1,15 +1,15 @@
 import requests
 
-url = "https://www.jogueinavila.com.br"  # depois a gente troca pelo site real
+url = "https://www.jogueinavila.com.br"
 
 try:
     response = requests.get(url)
     content = response.text.lower()
 
-    if "google" in content:
-        print("✅ Palavra encontrada! Site OK")
+    if "novidades em breve" in content:
+        print("⏳ Ainda não abriu (mensagem continua no site)")
     else:
-        print("❌ Palavra NÃO encontrada!")
+        print("🚨 ATENÇÃO: O site mudou! Pode ter aberto inscrição!!!")
 
 except Exception as e:
     print(f"Erro ao acessar o site: {e}")
