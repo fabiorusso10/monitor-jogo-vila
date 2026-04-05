@@ -11,6 +11,9 @@ jobs:
   check-site:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
